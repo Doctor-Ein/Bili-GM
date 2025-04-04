@@ -152,6 +152,10 @@ function extractVideoInfo() {
         // 检查是否已收藏
         const isFavorite = document.querySelector('.collect-icon.on') !== null;
 
+        // 获取当前观看时间
+        const videoElement = document.querySelector('video');
+        const watchTime = videoElement ? Math.floor(videoElement.currentTime) : 0;
+
         return {
             id: videoId,
             title,
@@ -160,7 +164,11 @@ function extractVideoInfo() {
             duration,
             isWatchLater,
             isFavorite,
-            url: window.location.href
+            url: window.location.href,
+            watchTime,
+            customRuleResults: [],
+            isValuable: false,
+            continued: false
         };
     } catch (error) {
         console.error('提取视频信息时出错:', error);

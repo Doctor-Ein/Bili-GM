@@ -1,5 +1,8 @@
 {
-    "watchHistory": [],
+    "watchHistory": {
+        "format_version": "1.0",
+        "records": {}
+    },
     "rules": {
         "keywords": {
             "positive": [

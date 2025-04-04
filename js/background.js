@@ -124,16 +124,16 @@ async function analyzeVideoValue(videoInfo) {
         // 检查学习关键词
         for (const keyword of learningKeywords) {
             if (tag.includes(keyword) && !usedLearningKeywords.has(keyword)) {
-                valueScore += 0.05;
-                reasons.push(`标签包含学习关键词: ${keyword}`);
+                valueScore += 0.15; // 增加学习相关标签的权重
+                reasons.push(`包含学习相关标签: ${tag}`);
                 usedLearningKeywords.add(keyword);
             }
         }
         // 检查娱乐关键词
         for (const keyword of entertainmentKeywords) {
             if (tag.includes(keyword) && !usedEntertainmentKeywords.has(keyword)) {
-                valueScore -= 0.05;
-                reasons.push(`标签包含娱乐关键词: ${keyword}`);
+                valueScore -= 0.1;
+                reasons.push(`包含娱乐相关标签: ${tag}`);
                 usedEntertainmentKeywords.add(keyword);
             }
         }
@@ -162,17 +162,18 @@ async function recordUserWatchingChoice(videoId, choice, videoInfo) {
     const data = await chrome.storage.local.get(['watchHistory']);
     const watchHistory = data.watchHistory || {};
 
+    // 重新分析视频以获取完整的分析详情
+    const analysis = await analyzeVideoValue(videoInfo);
+
     // 记录用户选择
     watchHistory[videoId] = {
         isValuable: choice,
         timestamp: Date.now(),
         videoInfo: videoInfo,
         analysisDetails: {
-            durationScore: durationScore,
-            valueScore: valueScore,
-            reasons: reasons,
-            learningKeywordsFound: Array.from(usedLearningKeywords),
-            entertainmentKeywordsFound: Array.from(usedEntertainmentKeywords)
+            confidence: analysis.confidence,
+            reasons: analysis.reason.split(', '),
+            userChoice: choice
         }
     };
 

@@ -2,7 +2,6 @@
 
 class WatchRecord {
     constructor() {
-        this.recordPath = chrome.runtime.getURL('JsonFiles/userBehavior.json');
         this.watchHistory = [];
         this.rules = {};
         this.config = {};
@@ -12,8 +11,7 @@ class WatchRecord {
     // 加载用户数据
     async loadData() {
         try {
-            const response = await fetch(this.recordPath);
-            const data = await response.json();
+            const data = await chrome.storage.local.get(['watchHistory', 'rules', 'config']);
             this.watchHistory = data.watchHistory || [];
             this.rules = data.rules || {};
             this.config = data.config || {};
@@ -24,18 +22,11 @@ class WatchRecord {
 
     // 保存用户数据
     async saveData() {
-        const data = {
-            watchHistory: this.watchHistory,
-            rules: this.rules,
-            config: this.config
-        };
         try {
-            await fetch(this.recordPath, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
+            await chrome.storage.local.set({
+                watchHistory: this.watchHistory,
+                rules: this.rules,
+                config: this.config
             });
         } catch (error) {
             console.error('保存用户数据失败:', error);
@@ -43,20 +34,33 @@ class WatchRecord {
     }
 
     // 记录视频观看
-    async recordWatch(videoInfo) {
+    async recordWatch(videoInfo, choice = null, analysisDetails = null) {
         const record = {
             timestamp: Date.now(),
             videoId: videoInfo.id,
             title: videoInfo.title,
+            uploader: videoInfo.uploader,
             tags: videoInfo.tags,
             url: videoInfo.url,
+            duration: videoInfo.duration,
             score: videoInfo.score,
             reasons: videoInfo.reasons,
-            continued: videoInfo.continued
+            isValuable: choice !== null ? choice : videoInfo.isValuable,
+            continued: videoInfo.continued,
+            watchTime: videoInfo.watchTime || 0,
+            isWatchLater: videoInfo.isWatchLater || false,
+            isFavorite: videoInfo.isFavorite || false,
+            customRuleResults: videoInfo.customRuleResults || [],
+            analysisDetails: analysisDetails
         };
-        this.watchHistory.push(record);
+        
+        // 更新观看历史
+        this.watchHistory[videoInfo.id] = record;
         await this.saveData();
-        this.updateRuleWeights(videoInfo);
+        
+        if (choice !== null) {
+            this.updateRuleWeights(videoInfo);
+        }
     }
 
     // 更新规则权重
