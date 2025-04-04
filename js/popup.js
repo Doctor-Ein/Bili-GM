@@ -127,22 +127,36 @@ async function getCurrentTabVideoInfo() {
             
             // 向content script发送消息获取视频信息
             chrome.tabs.sendMessage(tab.id, { action: 'getVideoInfo' }, async (response) => {
-                if (chrome.runtime.lastError) {
-                    console.error('获取视频信息失败:', chrome.runtime.lastError);
+                if (chrome.runtime.lastError || !response || !response.videoInfo) {
+                    console.error('获取视频信息失败:', chrome.runtime.lastError || '无视频信息');
+                    document.getElementById('current-video').style.display = 'block';
+                    document.getElementById('current-video').innerHTML = '<p class="error-message">无法获取视频信息，请确保在B站视频页面并刷新页面</p>';
                     return;
                 }
 
                 if (response && response.videoInfo) {
-                    // 获取视频分析结果
-                    const result = await new Promise(resolve => {
-                        chrome.runtime.sendMessage(
-                            { action: 'checkVideoValue', videoInfo: response.videoInfo },
-                            resolve
-                        );
-                    });
+                    try {
+                        // 获取视频分析结果
+                        const result = await new Promise((resolve, reject) => {
+                            chrome.runtime.sendMessage(
+                                { action: 'checkVideoValue', videoInfo: response.videoInfo },
+                                (response) => {
+                                    if (chrome.runtime.lastError) {
+                                        reject(chrome.runtime.lastError);
+                                    } else {
+                                        resolve(response);
+                                    }
+                                }
+                            );
+                        });
 
-                    // 更新UI显示
-                    updateVideoInfoUI(response.videoInfo, result);
+                        // 更新UI显示
+                        updateVideoInfoUI(response.videoInfo, result);
+                    } catch (error) {
+                        console.error('获取视频分析结果失败:', error);
+                        document.getElementById('current-video').style.display = 'block';
+                        document.getElementById('current-video').innerHTML = '<p class="error-message">分析视频时出错，请刷新页面后重试</p>';
+                    }
                 }
             });
         } else {

@@ -116,15 +116,26 @@ async function analyzeVideoValue(videoInfo) {
         }
     }
 
-    // 检查标签
+    // 检查标签，记录已经计算过的关键词类型
+    const usedLearningKeywords = new Set();
+    const usedEntertainmentKeywords = new Set();
+
     for (const tag of videoInfo.tags) {
-        if (learningKeywords.some(keyword => tag.includes(keyword))) {
-            valueScore += 0.05;
-            reasons.push(`标签包含学习关键词`);
+        // 检查学习关键词
+        for (const keyword of learningKeywords) {
+            if (tag.includes(keyword) && !usedLearningKeywords.has(keyword)) {
+                valueScore += 0.05;
+                reasons.push(`标签包含学习关键词: ${keyword}`);
+                usedLearningKeywords.add(keyword);
+            }
         }
-        if (entertainmentKeywords.some(keyword => tag.includes(keyword))) {
-            valueScore -= 0.05;
-            reasons.push(`标签包含娱乐关键词`);
+        // 检查娱乐关键词
+        for (const keyword of entertainmentKeywords) {
+            if (tag.includes(keyword) && !usedEntertainmentKeywords.has(keyword)) {
+                valueScore -= 0.05;
+                reasons.push(`标签包含娱乐关键词: ${keyword}`);
+                usedEntertainmentKeywords.add(keyword);
+            }
         }
     }
 
@@ -155,7 +166,14 @@ async function recordUserWatchingChoice(videoId, choice, videoInfo) {
     watchHistory[videoId] = {
         isValuable: choice,
         timestamp: Date.now(),
-        videoInfo: videoInfo
+        videoInfo: videoInfo,
+        analysisDetails: {
+            durationScore: durationScore,
+            valueScore: valueScore,
+            reasons: reasons,
+            learningKeywordsFound: Array.from(usedLearningKeywords),
+            entertainmentKeywordsFound: Array.from(usedEntertainmentKeywords)
+        }
     };
 
     // 保存到存储

@@ -1,0 +1,27 @@
+{
+    "watchHistory": [],
+    "rules": {
+        "keywords": {
+            "positive": [
+                "学习",
+                "教程",
+                "科普",
+                "讲解",
+                "教学"
+            ],
+            "negative": [
+                "搞笑",
+                "娱乐",
+                "王者荣耀",
+                "游戏"
+            ]
+        },
+        "minDuration": 180,
+        "scoreThreshold": 0.6
+    },
+    "config": {
+        "enableAutoSkip": true,
+        "showScoreInPopup": true,
+        "recordHistory": true
+    }
+}

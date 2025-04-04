@@ -39,9 +39,15 @@ window.bilibiliFilter = {
 };
 
 // 等待页面加载完成
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('load', () => {
     // 确保在B站视频页面上运行
     if (window.location.href.includes('bilibili.com/video/')) {
+        // 确保CSS样式已加载
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = chrome.runtime.getURL('css/style.css');
+        document.head.appendChild(link);
+        
         setTimeout(analyzeCurrentVideo, 2000); // 延迟2秒，确保页面元素加载完成
     }
 });
@@ -117,21 +123,20 @@ function extractVideoInfo() {
         const videoId = window.location.pathname.split('/').pop().split('?')[0];
 
         // 获取视频标题
-        const title = document.querySelector('h1.video-title') ?
-            document.querySelector('h1.video-title').title ||
-            document.querySelector('h1.video-title').textContent : '';
+        const titleElement = document.querySelector('h1.video-title, h1.title');
+        const title = titleElement ? titleElement.title || titleElement.textContent.trim() : '';
 
         // 获取UP主信息
-        const uploader = document.querySelector('.up-name') ?
-            document.querySelector('.up-name').textContent : '';
+        const uploaderElement = document.querySelector('.up-name, .up-info_right .username');
+        const uploader = uploaderElement ? uploaderElement.textContent.trim() : '';
 
         // 获取视频标签
-        const tagElements = document.querySelectorAll('.tag-link');
-        const tags = Array.from(tagElements).map(tag => tag.textContent);
+        const tagElements = document.querySelectorAll('.tag-link, .tag:not(.topic)>div>a');
+        const tags = Array.from(tagElements).map(tag => tag.textContent.trim()).filter(tag => tag);
 
         // 获取视频时长
         let duration = 0;
-        const durationText = document.querySelector('.bilibili-player-video-time-total');
+        const durationText = document.querySelector('.bilibili-player-video-time-total, .bpx-player-ctrl-time-duration');
         if (durationText) {
             const timeParts = durationText.textContent.split(':');
             if (timeParts.length === 2) { // MM:SS 格式
@@ -196,7 +201,7 @@ function showWarningDialog(videoInfo, analysisResult) {
         </div>
         <div class="dialog-buttons">
             <button class="continue-btn">继续观看</button>
-            <button class="leave-btn">离开页面</button>
+            <button class="leave-btn" onclick="window.location.href='https://www.bilibili.com/watchlater/#/list'">离开页面</button>
         </div>
     </div>
     `;

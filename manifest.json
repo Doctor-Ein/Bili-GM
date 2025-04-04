@@ -8,6 +8,10 @@
         "tabs",
         "scripting"
     ],
+    "web_accessible_resources": [{
+        "resources": ["JsonFiles/*"],
+        "matches": ["*://*.bilibili.com/*"]
+    }],
     "host_permissions": [
         "*://*.bilibili.com/*"
     ],
