@@ -1,11 +1,26 @@
 // background.js - 插件的后台脚本
 
+// 加载配置文件
+async function loadConfig() {
+    try {
+        const configResponse = await fetch(chrome.runtime.getURL('JsonFiles/config.json'));
+        const tagResponse = await fetch(chrome.runtime.getURL('JsonFiles/tag.json'));
+        const config = await configResponse.json();
+        const tags = await tagResponse.json();
+        return { config, tags };
+    } catch (error) {
+        console.error('加载配置文件失败:', error);
+        return null;
+    }
+}
+
 // 初始化存储的默认值
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async () => {
+    const { config } = await loadConfig() || { config: { valueThreshold: 0.7 } };
     chrome.storage.local.get(['valueThreshold', 'watchHistory'], (result) => {
-        // 如果没有设置阈值，默认设置为0.7
+        // 如果没有设置阈值，使用配置文件中的默认值
         if (result.valueThreshold === undefined) {
-            chrome.storage.local.set({ valueThreshold: 0.7 });
+            chrome.storage.local.set({ valueThreshold: config.valueThreshold });
         }
 
         // 如果没有观看历史记录，初始化为空对象
@@ -79,27 +94,46 @@ async function analyzeVideoValue(videoInfo) {
         };
     }
 
+    // 加载配置和标签
+    const { config, tags } = await loadConfig() || {
+        config: {
+            durationRules: {
+                shortVideo: { threshold: 180, score: 0.3 },
+                longVideo: { threshold: 600, score: 0.7 },
+                defaultScore: 0.5
+            },
+            keywordScores: {
+                learning: 0.1,
+                entertainment: -0.1,
+                tagLearning: 0.15,
+                tagEntertainment: -0.1
+            }
+        },
+        tags: {
+            learningKeywords: [],
+            entertainmentKeywords: []
+        }
+    };
+
     // 检查视频时长
-    let durationScore = 0.5;
-    if (videoInfo.duration < 180) { // 小于3分钟
-        durationScore = 0.3; // 降低分数但不直接判定为无价值
-    } else if (videoInfo.duration > 600) { // 大于10分钟
-        durationScore = 0.7; // 较长视频可能更有价值
+    let durationScore = config.durationRules.defaultScore;
+    if (videoInfo.duration < config.durationRules.shortVideo.threshold) {
+        durationScore = config.durationRules.shortVideo.score;
+    } else if (videoInfo.duration > config.durationRules.longVideo.threshold) {
+        durationScore = config.durationRules.longVideo.score;
     }
 
     // 基于标题、标签和UP主的分析
     let valueScore = durationScore; // 初始分数基于视频时长
     let reasons = [];
     
-    if (videoInfo.duration < 180) {
+    if (videoInfo.duration < config.durationRules.shortVideo.threshold) {
         reasons.push('短视频(小于3分钟)');
     }
 
-    // 学习相关关键词
-    const learningKeywords = ['教程', '学习', '课程', '讲解', '分析', '知识', '科普', '技术', '编程', '数学', '物理', '化学', '生物', '历史', '地理', '经济', '哲学', '文学'];
-
-    // 娱乐相关关键词
-    const entertainmentKeywords = ['搞笑', '娱乐', '游戏', 'vlog', '开箱', '测评', '挑战', '恶搞', '整蛊', '剧情', '短剧', '沙雕', '鬼畜'];
+    // 从配置文件加载关键词
+    const learningKeywords = tags.learningKeywords;
+    const entertainmentKeywords = tags.entertainmentKeywords;
 
     // 检查标题中的关键词
     for (const keyword of learningKeywords) {
@@ -124,7 +158,7 @@ async function analyzeVideoValue(videoInfo) {
         // 检查学习关键词
         for (const keyword of learningKeywords) {
             if (tag.includes(keyword) && !usedLearningKeywords.has(keyword)) {
-                valueScore += 0.15; // 增加学习相关标签的权重
+                valueScore += config.keywordScores.tagLearning;
                 reasons.push(`包含学习相关标签: ${tag}`);
                 usedLearningKeywords.add(keyword);
             }
@@ -132,7 +166,7 @@ async function analyzeVideoValue(videoInfo) {
         // 检查娱乐关键词
         for (const keyword of entertainmentKeywords) {
             if (tag.includes(keyword) && !usedEntertainmentKeywords.has(keyword)) {
-                valueScore -= 0.1;
+                valueScore += config.keywordScores.tagEntertainment;
                 reasons.push(`包含娱乐相关标签: ${tag}`);
                 usedEntertainmentKeywords.add(keyword);
             }

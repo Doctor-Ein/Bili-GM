@@ -1,0 +1,20 @@
+{
+  "valueThreshold": 0.7,
+  "durationRules": {
+    "shortVideo": {
+      "threshold": 180,
+      "score": 0.3
+    },
+    "longVideo": {
+      "threshold": 600,
+      "score": 0.7
+    },
+    "defaultScore": 0.5
+  },
+  "keywordScores": {
+    "learning": 0.1,
+    "entertainment": -0.1,
+    "tagLearning": 0.15,
+    "tagEntertainment": -0.1
+  }
+}
