@@ -1,0 +1,43 @@
+{
+    "manifest_version": 3,
+    "name": "B站防刷视频插件",
+    "version": "1.0",
+    "description": "帮助用户识别B站无价值视频，提高浏览效率",
+    "permissions": [
+        "storage",
+        "tabs",
+        "scripting"
+    ],
+    "host_permissions": [
+        "*://*.bilibili.com/*"
+    ],
+    "background": {
+        "service_worker": "js/background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.bilibili.com/*"
+            ],
+            "js": [
+                "js/content.js"
+            ],
+            "css": [
+                "css/style.css"
+            ]
+        }
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "images/icon16.svg",
+            "48": "images/icon48.svg",
+            "128": "images/icon128.svg"
+        }
+    },
+    "icons": {
+        "16": "images/icon16.svg",
+        "48": "images/icon48.svg",
+        "128": "images/icon128.svg"
+    }
+}

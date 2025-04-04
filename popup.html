@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B站防刷视频插件</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="popup">
+    <div class="popup-header">
+        <img src="images/icon48.svg" alt="插件图标">
+        <h2>B站防刷视频插件</h2>
+    </div>
+
+    <div id="current-video" class="video-info-section" style="display: none;">
+        <h3>当前视频</h3>
+        <div class="video-info-item">
+            <span>标题:</span>
+            <span id="video-title">-</span>
+        </div>
+        <div class="video-info-item">
+            <span>价值分数:</span>
+            <div class="score-container">
+                <div id="value-score-bar" class="score-bar">
+                    <div id="value-score-fill" class="score-fill"></div>
+                </div>
+                <span id="value-score">-</span>
+            </div>
+        </div>
+        <div class="video-info-item">
+            <span>类型判断:</span>
+            <span id="video-type">-</span>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="settings-item">
+            <label for="threshold">无价值视频判断阈值:</label>
+            <input type="range" id="threshold" min="0" max="1" step="0.05" value="0.7">
+            <div class="threshold-value">当前阈值: <span id="threshold-display">0.7</span></div>
+            <small>较高的阈值会减少提醒次数，较低的阈值会增加提醒次数</small>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <h3>使用统计</h3>
+        <div class="stats-item">
+            <span>已分析视频数:</span>
+            <span id="analyzed-count">0</span>
+        </div>
+        <div class="stats-item">
+            <span>已跳过视频数:</span>
+            <span id="skipped-count">0</span>
+        </div>
+        <div class="stats-item">
+            <span>已观看视频数:</span>
+            <span id="watched-count">0</span>
+        </div>
+    </div>
+
+    <button class="save-button" id="save-settings">保存设置</button>
+
+    <script src="js/popup.js"></script>
+</body>
+
+</html>

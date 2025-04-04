@@ -1,0 +1,34 @@
+{
+    "version": "1.4",
+    "watchHistory": {},
+    "customRules": [
+        {
+            "id": "default_duration",
+            "name": "视频时长规则",
+            "description": "检查视频时长是否小于3分钟",
+            "type": "duration",
+            "enabled": true,
+            "condition": "duration < 180",
+            "confidence": 0.8
+        }
+    ],
+    "userPreferences": {
+        "valueThreshold": 0.7,
+        "shortVideoPolicy": "flexible",
+        "autoSkip": false
+    },
+    "watchRecords": {
+        "history": {},
+        "metadata": {
+            "lastUpdate": "",
+            "totalVideos": 0
+        }
+    },
+    "statistics": {
+        "totalAnalyzed": 0,
+        "valuableCount": 0,
+        "nonValuableCount": 0,
+        "shortVideosWatched": 0,
+        "ruleEffectiveness": {}
+    }
+}
